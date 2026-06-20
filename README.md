@@ -23,7 +23,7 @@ At any moment the user can answer:
 
 | Layer      | Technology                              |
 |------------|-----------------------------------------|
-| Frontend   | Next.js 14 (App Router), TypeScript     |
+| Frontend   | Next.js 16 (App Router), TypeScript     |
 | Styling    | Tailwind CSS + shadcn/ui                |
 | Backend    | Supabase (PostgreSQL + Auth + Storage)  |
 | Hosting    | Vercel                                  |
@@ -76,7 +76,7 @@ npm install
 ### 3. Configure environment variables
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env.local
 ```
 
 Edit `.env.local`:
@@ -164,7 +164,11 @@ src/
 | [Development Standards](docs/standards/DEVELOPMENT_STANDARDS.md) | Code standards and conventions |
 | [QA Standards](docs/standards/QA_STANDARDS.md) | Testing requirements and checklists |
 | [MVP Scope](docs/sprints/SPRINT_0_MVP_SCOPE.md) | Feature list and out-of-scope items |
-| [Sprint 1 Plan](docs/sprints/SPRINT_1_PLAN.md) | Current sprint tasks |
+| [Sprint 1 Plan](docs/sprints/SPRINT_1_PLAN.md) | Bootstrap tasks |
+| [Supabase Setup](docs/deployment/SUPABASE_SETUP.md) | Project creation, migrations, auth |
+| [OAuth Setup](docs/deployment/OAUTH_SETUP.md) | Google and Microsoft provider config |
+| [Vercel Setup](docs/deployment/VERCEL_SETUP.md) | Deployment guide |
+| [Production Checklist](docs/deployment/PRODUCTION_CHECKLIST.md) | Go-live verification |
 
 ### Architecture Decision Records (ADRs)
 
@@ -189,9 +193,8 @@ src/
 |---------------------------------|----------|--------------------------------------|
 | `NEXT_PUBLIC_SUPABASE_URL`      | Yes      | Supabase project URL                 |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes      | Supabase anonymous key               |
-| `SUPABASE_SERVICE_ROLE_KEY`     | No*      | Service role key — server only       |
 
-*`SUPABASE_SERVICE_ROLE_KEY` must NEVER be used in browser/frontend code.
+Copy `.env.example` to `.env.local` for local development. The service_role key is never used in this app.
 
 ---
 

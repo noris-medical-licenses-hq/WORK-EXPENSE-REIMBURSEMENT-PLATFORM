@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Trash2, Loader2 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { ExpenseRepository } from "@/lib/repositories/expense.repository";
 import { ExpenseService } from "@/lib/services/expense.service";
+import { ReceiptSection } from "./ReceiptSection";
 import {
   REIMBURSEMENT_STATUS_LABELS,
   REIMBURSEMENT_STATUS_COLORS,
@@ -35,18 +36,21 @@ export function ExpenseDetailShell({ id }: { id: string }) {
   const [transitioning, setTransitioning] = useState<ReimbursementStatus | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
+  const reload = useCallback(async () => {
     if (!user) return;
-    ExpenseRepository.findById(id, user.id)
-      .then((data) => {
-        setExpense(data);
-        setLoading(false);
-      })
-      .catch((err: Error) => {
-        setError(err.message);
-        setLoading(false);
-      });
+    try {
+      const data = await ExpenseRepository.findById(id, user.id);
+      setExpense(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load expense");
+    } finally {
+      setLoading(false);
+    }
   }, [id, user]);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
 
   async function handleTransition(newStatus: ReimbursementStatus) {
     if (!user || !expense) return;
@@ -183,6 +187,13 @@ export function ExpenseDetailShell({ id }: { id: string }) {
         )}
         {expense.notes && <Row label="Notes" value={expense.notes} />}
       </div>
+
+      {/* Receipt upload */}
+      <ReceiptSection
+        expenseId={expense.id}
+        userId={user!.id}
+        onReceiptStatusChange={reload}
+      />
 
       {/* Status transitions */}
       {validTransitions.length > 0 && (
