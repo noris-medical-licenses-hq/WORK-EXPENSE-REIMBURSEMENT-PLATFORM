@@ -7,6 +7,7 @@ type EmptyStateProps = {
   description?: string;
   ctaLabel?: string;
   ctaHref?: string;
+  onCtaClick?: () => void;
   icon?: React.ReactNode;
   className?: string;
 };
@@ -16,6 +17,7 @@ export function EmptyState({
   description,
   ctaLabel,
   ctaHref,
+  onCtaClick,
   icon,
   className,
 }: EmptyStateProps) {
@@ -35,7 +37,16 @@ export function EmptyState({
       {description && (
         <p className="text-sm text-slate-400 mt-1 max-w-xs">{description}</p>
       )}
-      {ctaLabel && ctaHref && (
+      {ctaLabel && onCtaClick && (
+        <button
+          onClick={onCtaClick}
+          className="mt-4 inline-flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          {ctaLabel}
+        </button>
+      )}
+      {ctaLabel && ctaHref && !onCtaClick && (
         <Link
           href={ctaHref}
           className="mt-4 inline-flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors"

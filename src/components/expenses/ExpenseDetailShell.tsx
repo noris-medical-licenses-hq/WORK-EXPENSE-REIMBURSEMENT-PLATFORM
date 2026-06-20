@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, Trash2, Loader2, Pencil } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { ExpenseRepository } from "@/lib/repositories/expense.repository";
 import { ExpenseService } from "@/lib/services/expense.service";
 import { ReceiptSection } from "./ReceiptSection";
+import { EditExpenseForm } from "./EditExpenseForm";
 import {
   REIMBURSEMENT_STATUS_LABELS,
   REIMBURSEMENT_STATUS_COLORS,
@@ -35,6 +36,7 @@ export function ExpenseDetailShell({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null);
   const [transitioning, setTransitioning] = useState<ReimbursementStatus | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const reload = useCallback(async () => {
     if (!user) return;
@@ -121,17 +123,27 @@ export function ExpenseDetailShell({ id }: { id: string }) {
         <h1 className="text-xl font-bold text-slate-900 flex-1 truncate">
           {expense.title}
         </h1>
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          className="w-9 h-9 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-        >
-          {deleting ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Trash2 className="w-4 h-4" />
-          )}
-        </button>
+        {!editing && (
+          <button
+            onClick={() => setEditing(true)}
+            className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        )}
+        {!editing && (
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="w-9 h-9 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+          >
+            {deleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+          </button>
+        )}
       </div>
 
       {error && (
@@ -140,81 +152,98 @@ export function ExpenseDetailShell({ id }: { id: string }) {
         </div>
       )}
 
-      {/* Amount card */}
-      <div className="bg-white rounded-xl border border-slate-100 p-6 text-center">
-        <p className="text-3xl font-bold text-slate-900">
-          {formatCurrency(expense.amount, expense.currency)}
-        </p>
-        <p className="text-sm text-slate-400 mt-1">
-          {formatDateFull(expense.expense_date)}
-        </p>
-        <div className="mt-3">
-          <span
-            className={`inline-flex text-xs font-medium px-2.5 py-1 rounded-full ${statusColors?.bg ?? ""} ${statusColors?.text ?? ""} ${statusColors?.border ?? ""} border`}
-          >
-            {REIMBURSEMENT_STATUS_LABELS[expense.reimbursement_status]}
-          </span>
-        </div>
-      </div>
-
-      {/* Details */}
-      <div className="bg-white rounded-xl border border-slate-100 divide-y divide-slate-100">
-        {expense.vendor_name && (
-          <Row label="Vendor" value={expense.vendor_name} />
-        )}
-        {expense.category && (
-          <Row
-            label="Category"
-            value={`${expense.category.icon ?? ""} ${expense.category.name}`.trim()}
+      {/* Edit mode */}
+      {editing && (
+        <div className="bg-white rounded-xl border border-slate-100 p-5">
+          <EditExpenseForm
+            expense={expense}
+            userId={user!.id}
+            onSaved={(updated) => {
+              setExpense(updated);
+              setEditing(false);
+            }}
+            onCancel={() => setEditing(false)}
           />
-        )}
-        {expense.payment_method && (
-          <Row
-            label="Payment"
-            value={
-              expense.payment_method.last_four
-                ? `${expense.payment_method.name} ···${expense.payment_method.last_four}`
-                : expense.payment_method.name
-            }
-          />
-        )}
-        <Row
-          label="Receipt"
-          value={RECEIPT_STATUS_LABELS[expense.receipt_status]}
-        />
-        {expense.is_personal && (
-          <Row label="Type" value="Personal (not for reimbursement)" />
-        )}
-        {expense.notes && <Row label="Notes" value={expense.notes} />}
-      </div>
-
-      {/* Receipt upload */}
-      <ReceiptSection
-        expenseId={expense.id}
-        userId={user!.id}
-        onReceiptStatusChange={reload}
-      />
-
-      {/* Status transitions */}
-      {validTransitions.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-2">
-          <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-3">
-            Change Status
-          </p>
-          {validTransitions.map((status) => (
-            <button
-              key={status}
-              onClick={() => handleTransition(status)}
-              disabled={!!transitioning}
-              className="w-full text-left flex items-center justify-between px-3 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
-            >
-              {TRANSITION_LABELS[status]}
-              {transitioning === status && (
-                <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
-              )}
-            </button>
-          ))}
         </div>
+      )}
+
+      {/* View mode */}
+      {!editing && (
+        <>
+          {/* Amount card */}
+          <div className="bg-white rounded-xl border border-slate-100 p-6 text-center">
+            <p className="text-3xl font-bold text-slate-900">
+              {formatCurrency(expense.amount, expense.currency)}
+            </p>
+            <p className="text-sm text-slate-400 mt-1">
+              {formatDateFull(expense.expense_date)}
+            </p>
+            <div className="mt-3">
+              <span
+                className={`inline-flex text-xs font-medium px-2.5 py-1 rounded-full ${statusColors?.bg ?? ""} ${statusColors?.text ?? ""} ${statusColors?.border ?? ""} border`}
+              >
+                {REIMBURSEMENT_STATUS_LABELS[expense.reimbursement_status]}
+              </span>
+            </div>
+          </div>
+
+          {/* Details */}
+          <div className="bg-white rounded-xl border border-slate-100 divide-y divide-slate-100">
+            {expense.vendor_name && (
+              <Row label="Vendor" value={expense.vendor_name} />
+            )}
+            {expense.category && (
+              <Row
+                label="Category"
+                value={`${expense.category.icon ?? ""} ${expense.category.name}`.trim()}
+              />
+            )}
+            {expense.payment_method && (
+              <Row
+                label="Payment"
+                value={
+                  expense.payment_method.last_four
+                    ? `${expense.payment_method.name} ···${expense.payment_method.last_four}`
+                    : expense.payment_method.name
+                }
+              />
+            )}
+            <Row label="Receipt" value={RECEIPT_STATUS_LABELS[expense.receipt_status]} />
+            {expense.is_personal && (
+              <Row label="Type" value="Personal (not for reimbursement)" />
+            )}
+            {expense.notes && <Row label="Notes" value={expense.notes} />}
+          </div>
+
+          {/* Receipt upload */}
+          <ReceiptSection
+            expenseId={expense.id}
+            userId={user!.id}
+            onReceiptStatusChange={reload}
+          />
+
+          {/* Status transitions */}
+          {validTransitions.length > 0 && (
+            <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-2">
+              <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-3">
+                Change Status
+              </p>
+              {validTransitions.map((status) => (
+                <button
+                  key={status}
+                  onClick={() => handleTransition(status)}
+                  disabled={!!transitioning}
+                  className="w-full text-left flex items-center justify-between px-3 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                >
+                  {TRANSITION_LABELS[status]}
+                  {transitioning === status && (
+                    <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
