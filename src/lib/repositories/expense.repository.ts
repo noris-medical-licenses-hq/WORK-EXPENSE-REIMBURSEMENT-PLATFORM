@@ -65,7 +65,7 @@ export class ExpenseRepository {
   static async create(expense: ExpenseInsert): Promise<Expense> {
     const { data, error } = await this.db
       .from("expenses")
-      .insert(expense as Parameters<typeof this.db.from>[0] extends never ? never : Record<string, unknown>)
+      .insert(expense as Record<string, unknown>)
       .select()
       .single();
 

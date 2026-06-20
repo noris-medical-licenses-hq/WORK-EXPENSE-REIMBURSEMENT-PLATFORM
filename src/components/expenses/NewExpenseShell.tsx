@@ -1,7 +1,13 @@
+"use client";
+
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useUser } from "@/hooks/useUser";
+import { NewExpenseForm } from "./NewExpenseForm";
 
 export function NewExpenseShell() {
+  const { user, loading } = useUser();
+
   return (
     <div className="px-4 py-6 md:px-0 max-w-lg">
       <div className="flex items-center gap-3 mb-6">
@@ -15,9 +21,13 @@ export function NewExpenseShell() {
       </div>
 
       <div className="bg-white rounded-xl border border-slate-100 p-6">
-        <p className="text-sm text-slate-500 text-center py-8">
-          Expense form — coming in Sprint 2
-        </p>
+        {loading || !user ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
+          <NewExpenseForm userId={user.id} />
+        )}
       </div>
     </div>
   );
