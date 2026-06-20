@@ -215,12 +215,27 @@ export function ExpenseDetailShell({ id }: { id: string }) {
             {expense.notes && <Row label="Notes" value={expense.notes} />}
           </div>
 
-          {/* Receipt upload */}
+          {/* Receipt section + not-required action */}
           <ReceiptSection
             expenseId={expense.id}
             userId={user!.id}
             onReceiptStatusChange={reload}
           />
+          {expense.receipt_status === "required_missing" && (
+            <button
+              onClick={async () => {
+                try {
+                  await ExpenseService.markReceiptNotRequired(expense.id, user!.id);
+                  await reload();
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Failed");
+                }
+              }}
+              className="w-full text-xs text-slate-500 hover:text-slate-700 py-1 transition-colors"
+            >
+              No receipt needed for this expense
+            </button>
+          )}
 
           {/* Status transitions */}
           {validTransitions.length > 0 && (

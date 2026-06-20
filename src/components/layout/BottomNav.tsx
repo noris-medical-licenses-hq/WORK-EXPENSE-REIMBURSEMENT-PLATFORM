@@ -7,7 +7,7 @@ import {
   List,
   Plus,
   Plane,
-  MoreHorizontal,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -18,6 +18,7 @@ const primaryTabs = [
 
 const secondaryTabs = [
   { href: "/trips", icon: Plane, label: "Trips" },
+  { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export function BottomNav() {
@@ -60,8 +61,6 @@ export function BottomNav() {
           />
         ))}
 
-        {/* More */}
-        <MoreButton />
       </div>
     </nav>
   );
@@ -92,14 +91,3 @@ function NavTab({
   );
 }
 
-function MoreButton() {
-  return (
-    <button
-      className="flex flex-col items-center justify-center gap-0.5 w-14 h-14 rounded-lg text-slate-400"
-      aria-label="More options"
-    >
-      <MoreHorizontal className="w-5 h-5" />
-      <span className="text-xs font-medium">More</span>
-    </button>
-  );
-}

@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { useProfile } from "@/hooks/useProfile";
 import { useCategories } from "@/hooks/useCategories";
 import { usePaymentMethods } from "@/hooks/usePaymentMethods";
+import { createClient } from "@/lib/supabase/client";
 import { ProfileForm } from "./ProfileForm";
 import { CategoriesManager } from "./CategoriesManager";
 import { PaymentMethodsManager } from "./PaymentMethodsManager";
@@ -18,6 +21,7 @@ export function ProfileSettingsShell() {
   const { categories, loading: catsLoading } = useCategories(user?.id);
   const { paymentMethods, loading: pmsLoading } = usePaymentMethods(user?.id);
   const [activeTab, setActiveTab] = useState<Tab>("profile");
+  const router = useRouter();
   const [localCategories, setLocalCategories] = useState<ExpenseCategory[] | null>(null);
   const [localPMs, setLocalPMs] = useState<PaymentMethod[] | null>(null);
 
@@ -109,6 +113,18 @@ export function ProfileSettingsShell() {
           </>
         )}
       </div>
+
+      {/* Sign out */}
+      <button
+        onClick={async () => {
+          await createClient().auth.signOut();
+          router.push("/login");
+        }}
+        className="w-full flex items-center justify-center gap-2 text-sm text-red-500 hover:text-red-600 py-3 transition-colors"
+      >
+        <LogOut className="w-4 h-4" />
+        Sign Out
+      </button>
     </div>
   );
 }
