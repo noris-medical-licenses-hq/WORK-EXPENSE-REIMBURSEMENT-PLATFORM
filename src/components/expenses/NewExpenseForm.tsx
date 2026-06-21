@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 import { usePaymentMethods } from "@/hooks/usePaymentMethods";
+import { useProfile } from "@/hooks/useProfile";
 import { ExpenseService } from "@/lib/services/expense.service";
 import type { ReceiptStatus } from "@/lib/types/expense.types";
 
@@ -44,10 +45,12 @@ export function NewExpenseForm({ userId }: Props) {
   const router = useRouter();
   const { categories } = useCategories(userId);
   const { paymentMethods } = usePaymentMethods(userId);
+  const { profile } = useProfile(userId);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     register,
+    setValue,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
@@ -63,6 +66,13 @@ export function NewExpenseForm({ userId }: Props) {
       notes: null,
     },
   });
+
+  // Override USD default with user's profile currency once loaded
+  useEffect(() => {
+    if (profile?.default_currency) {
+      setValue("currency", profile.default_currency);
+    }
+  }, [profile?.default_currency, setValue]);
 
   async function onSubmit(values: FormValues) {
     setSubmitError(null);

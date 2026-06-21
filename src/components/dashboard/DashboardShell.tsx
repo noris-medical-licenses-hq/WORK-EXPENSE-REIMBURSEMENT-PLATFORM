@@ -2,41 +2,30 @@
 
 import Link from "next/link";
 import { AlertCircle, Clock, CheckCircle2, DollarSign, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/useUser";
-import type { ExpenseWithRelations } from "@/lib/types/expense.types";
+import { useExpenses } from "@/hooks/useExpenses";
 import { ExpenseCard } from "@/components/expenses/ExpenseCard";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
+import type { ExpenseWithRelations } from "@/lib/types/expense.types";
+
+function sumByCurrency(list: ExpenseWithRelations[]): string {
+  const byC: Record<string, number> = {};
+  for (const e of list) {
+    byC[e.currency] = (byC[e.currency] ?? 0) + e.amount;
+  }
+  const entries = Object.entries(byC);
+  if (entries.length === 0) return "";
+  return entries.map(([c, a]) => formatCurrency(a, c)).join(" · ");
+}
 
 export function DashboardShell() {
   const { user } = useUser();
-  const [expenses, setExpenses] = useState<ExpenseWithRelations[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) return;
-    createClient()
-      .from("expenses")
-      .select("*, category:expense_categories(*), payment_method:payment_methods(*)")
-      .eq("user_id", user.id)
-      .is("deleted_at", null)
-      .order("expense_date", { ascending: false })
-      .limit(50)
-      .then(({ data }) => {
-        setExpenses((data as unknown as ExpenseWithRelations[]) ?? []);
-        setLoading(false);
-      });
-  }, [user]);
+  const { expenses, loading, error } = useExpenses(user?.id);
 
   const draft = expenses.filter((e) => e.reimbursement_status === "draft" || e.reimbursement_status === "ready");
   const submitted = expenses.filter((e) => e.reimbursement_status === "submitted");
-  const approved = expenses.filter((e) => e.reimbursement_status === "approved");
+  const approved = expenses.filter((e) => e.reimbursement_status === "approved" || e.reimbursement_status === "paid");
   const missingReceipts = expenses.filter((e) => e.receipt_status === "required_missing");
-
-  const pendingAmount = draft.reduce((sum, e) => sum + e.amount, 0);
-  const submittedAmount = submitted.reduce((sum, e) => sum + e.amount, 0);
-  const approvedAmount = approved.reduce((sum, e) => sum + e.amount, 0);
 
   const recent = expenses.slice(0, 5);
 
@@ -60,15 +49,18 @@ export function DashboardShell() {
         <div className="flex items-center justify-center py-16">
           <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
         </div>
+      ) : error ? (
+        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          {error}
+        </div>
       ) : expenses.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <DollarSign className="w-8 h-8 text-slate-400" />
           </div>
           <p className="font-medium text-slate-700">No expenses yet</p>
-          <p className="text-sm text-slate-400 mt-1 mb-5">
-            Tap + to add your first expense
-          </p>
+          <p className="text-sm text-slate-400 mt-1 mb-5">Tap + to add your first expense</p>
           <Link
             href="/expenses/new"
             className="inline-flex items-center gap-2 bg-blue-600 text-white rounded-xl px-5 py-2.5 text-sm font-semibold hover:bg-blue-700 transition-colors"
@@ -79,34 +71,34 @@ export function DashboardShell() {
         </div>
       ) : (
         <>
-          {/* Status cards */}
+          {/* Status cards — each deep-links to the filtered expense list */}
           <div className="grid grid-cols-2 gap-3">
             <StatusCard
               label="Pending"
               value={draft.length.toString()}
-              sub={pendingAmount > 0 ? formatCurrency(pendingAmount, "USD") : undefined}
+              sub={sumByCurrency(draft) || undefined}
               icon={Clock}
               color="text-blue-600"
               bg="bg-blue-50"
-              href="/expenses"
+              href="/expenses?filter=pending"
             />
             <StatusCard
               label="Submitted"
               value={submitted.length.toString()}
-              sub={submittedAmount > 0 ? formatCurrency(submittedAmount, "USD") : undefined}
+              sub={sumByCurrency(submitted) || undefined}
               icon={AlertCircle}
               color="text-amber-600"
               bg="bg-amber-50"
-              href="/expenses"
+              href="/expenses?filter=submitted"
             />
             <StatusCard
               label="Approved"
               value={approved.length.toString()}
-              sub={approvedAmount > 0 ? formatCurrency(approvedAmount, "USD") : undefined}
+              sub={sumByCurrency(approved) || undefined}
               icon={CheckCircle2}
               color="text-green-600"
               bg="bg-green-50"
-              href="/expenses"
+              href="/expenses?filter=approved"
             />
             <StatusCard
               label="Missing Receipts"
@@ -114,7 +106,7 @@ export function DashboardShell() {
               icon={AlertCircle}
               color="text-orange-600"
               bg="bg-orange-50"
-              href="/expenses"
+              href="/expenses?filter=missing_receipts"
               urgent={missingReceipts.length > 0}
             />
           </div>
@@ -124,10 +116,7 @@ export function DashboardShell() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm font-semibold text-slate-700">Recent</p>
-                <Link
-                  href="/expenses"
-                  className="text-xs text-blue-600 hover:underline"
-                >
+                <Link href="/expenses" className="text-xs text-blue-600 hover:underline">
                   See all
                 </Link>
               </div>
@@ -168,9 +157,7 @@ function StatusCard({
       href={href}
       className={`bg-white rounded-xl border p-4 space-y-2 hover:shadow-sm transition-shadow ${urgent && value !== "0" ? "border-orange-200" : "border-slate-100"}`}
     >
-      <div
-        className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center`}
-      >
+      <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center`}>
         <Icon className={`w-4 h-4 ${color}`} />
       </div>
       <div>

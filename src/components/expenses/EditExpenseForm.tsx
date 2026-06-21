@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 import { ExpenseService } from "@/lib/services/expense.service";
-import type { ExpenseWithRelations, ReceiptStatus } from "@/lib/types/expense.types";
+import type { ExpenseWithRelations } from "@/lib/types/expense.types";
 
 const CURRENCIES = [
   "USD", "EUR", "GBP", "ILS", "CAD", "AUD", "CHF",
@@ -28,7 +28,6 @@ const schema = z.object({
   vendor_name: z.string().nullable(),
   category_id: z.string().nullable(),
   payment_method_id: z.string().nullable(),
-  receipt_status: z.enum(["not_required", "required_missing", "uploaded"]),
   is_personal: z.boolean(),
   notes: z.string().nullable(),
 });
@@ -61,7 +60,6 @@ export function EditExpenseForm({ expense, userId, onSaved, onCancel }: Props) {
       vendor_name: expense.vendor_name ?? null,
       category_id: expense.category_id ?? null,
       payment_method_id: expense.payment_method_id ?? null,
-      receipt_status: expense.receipt_status,
       is_personal: expense.is_personal,
       notes: expense.notes ?? null,
     },
@@ -78,7 +76,6 @@ export function EditExpenseForm({ expense, userId, onSaved, onCancel }: Props) {
         vendor_name: values.vendor_name ?? null,
         category_id: values.category_id ?? null,
         payment_method_id: values.payment_method_id ?? null,
-        receipt_status: values.receipt_status as ReceiptStatus,
         is_personal: values.is_personal,
         notes: values.notes ?? null,
       });
@@ -184,18 +181,20 @@ export function EditExpenseForm({ expense, userId, onSaved, onCancel }: Props) {
         </div>
       )}
 
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">Receipt</label>
-        <div className="grid grid-cols-2 gap-2">
-          <label className="flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-2.5 cursor-pointer has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 transition-colors">
-            <input {...register("receipt_status")} type="radio" value="required_missing" className="sr-only" />
-            <span className="text-sm text-slate-700">Will attach</span>
-          </label>
-          <label className="flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-2.5 cursor-pointer has-[:checked]:border-slate-400 has-[:checked]:bg-slate-50 transition-colors">
-            <input {...register("receipt_status")} type="radio" value="not_required" className="sr-only" />
-            <span className="text-sm text-slate-700">Not required</span>
-          </label>
+      {/* Personal expense toggle */}
+      <div className="flex items-center justify-between py-1">
+        <div>
+          <p className="text-sm font-medium text-slate-700">Personal expense</p>
+          <p className="text-xs text-slate-400 mt-0.5">Not for reimbursement</p>
         </div>
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            {...register("is_personal")}
+            type="checkbox"
+            className="sr-only peer"
+          />
+          <div className="w-10 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
+        </label>
       </div>
 
       <div>

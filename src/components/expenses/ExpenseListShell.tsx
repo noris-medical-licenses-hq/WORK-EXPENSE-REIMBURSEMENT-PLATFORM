@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Plus, List } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { useExpenses } from "@/hooks/useExpenses";
@@ -21,10 +22,23 @@ const FILTERS: { id: Filter; label: string }[] = [
 
 const PENDING_STATUSES: ReimbursementStatus[] = ["draft", "ready"];
 
+const VALID_FILTERS: Filter[] = ["all", "pending", "submitted", "approved", "missing_receipts"];
+
 export function ExpenseListShell() {
   const { user } = useUser();
   const { expenses, loading, error } = useExpenses(user?.id);
-  const [filter, setFilter] = useState<Filter>("all");
+  const searchParams = useSearchParams();
+  const urlFilter = searchParams.get("filter") as Filter | null;
+  const [filter, setFilter] = useState<Filter>(
+    urlFilter && VALID_FILTERS.includes(urlFilter) ? urlFilter : "all"
+  );
+
+  // Sync filter state if user navigates back here with a different ?filter=
+  useEffect(() => {
+    if (urlFilter && VALID_FILTERS.includes(urlFilter)) {
+      setFilter(urlFilter);
+    }
+  }, [urlFilter]);
 
   const filtered = useMemo(() => {
     switch (filter) {

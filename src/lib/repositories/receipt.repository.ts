@@ -79,17 +79,23 @@ export class ReceiptRepository {
   }
 
   static async remove(receiptId: string, filePath: string): Promise<void> {
-    const { error: storageError } = await this.db.storage
-      .from(BUCKET)
-      .remove([filePath]);
-
-    if (storageError) throw new Error(storageError.message);
-
+    // Delete DB record first — if this fails nothing is lost (user can retry)
     const { error: dbError } = await this.db
       .from("receipts")
       .delete()
       .eq("id", receiptId);
 
     if (dbError) throw new Error(dbError.message);
+
+    // Delete from Storage after — if this fails, file is orphaned but the DB
+    // record is gone so the user is unblocked. Orphaned files can be cleaned
+    // up by an admin; a dangling DB record cannot be recovered by the user.
+    const { error: storageError } = await this.db.storage
+      .from(BUCKET)
+      .remove([filePath]);
+
+    if (storageError) {
+      console.error(`Storage cleanup failed for ${filePath}:`, storageError.message);
+    }
   }
 }

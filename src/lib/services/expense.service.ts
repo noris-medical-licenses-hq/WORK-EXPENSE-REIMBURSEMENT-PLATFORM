@@ -103,13 +103,13 @@ export class ExpenseService {
       );
     }
 
-    // Enforce receipt requirement before moving to "ready"
+    // Enforce receipt requirement before moving to "ready" or "submitted"
     if (
-      newStatus === "ready" &&
+      (newStatus === "ready" || newStatus === "submitted") &&
       expense.receipt_status === "required_missing"
     ) {
       throw new ExpenseValidationError(
-        "Cannot mark as ready: receipt is required but not uploaded. Upload a receipt or mark it as not required.",
+        "A receipt is required. Upload a receipt or mark it as not required before submitting.",
         "receipt_status"
       );
     }

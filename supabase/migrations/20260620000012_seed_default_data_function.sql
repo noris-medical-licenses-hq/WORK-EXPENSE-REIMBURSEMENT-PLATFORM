@@ -4,20 +4,20 @@
 CREATE OR REPLACE FUNCTION seed_user_defaults(p_user_id uuid)
 RETURNS void AS $$
 BEGIN
-  -- Default expense categories
+  -- Default expense categories (icons are emoji for universal rendering)
   INSERT INTO expense_categories (user_id, name, icon, color, is_default, sort_order) VALUES
-    (p_user_id, 'Meals & Dining',         'fork-knife',       '#F59E0B', true,  1),
-    (p_user_id, 'Transportation',         'car',              '#3B82F6', true,  2),
-    (p_user_id, 'Accommodation',          'bed',              '#8B5CF6', true,  3),
-    (p_user_id, 'Flights',                'plane',            '#06B6D4', true,  4),
-    (p_user_id, 'Parking',                'parking',          '#64748B', true,  5),
-    (p_user_id, 'Fuel',                   'fuel',             '#EF4444', true,  6),
-    (p_user_id, 'Equipment',              'laptop',           '#10B981', true,  7),
-    (p_user_id, 'Office Supplies',        'paperclip',        '#6366F1', true,  8),
-    (p_user_id, 'Conference & Events',    'calendar',         '#EC4899', true,  9),
-    (p_user_id, 'Client Entertainment',   'star',             '#F97316', true, 10),
-    (p_user_id, 'Telecommunications',     'phone',            '#14B8A6', true, 11),
-    (p_user_id, 'Other',                  'more-horizontal',  '#94A3B8', true, 12)
+    (p_user_id, 'Meals & Dining',         '🍴',  '#F59E0B', true,  1),
+    (p_user_id, 'Transportation',         '🚗',  '#3B82F6', true,  2),
+    (p_user_id, 'Accommodation',          '🏨',  '#8B5CF6', true,  3),
+    (p_user_id, 'Flights',                '✈️',  '#06B6D4', true,  4),
+    (p_user_id, 'Parking',                '🅿️',  '#64748B', true,  5),
+    (p_user_id, 'Fuel',                   '⛽',  '#EF4444', true,  6),
+    (p_user_id, 'Equipment',              '💻',  '#10B981', true,  7),
+    (p_user_id, 'Office Supplies',        '📎',  '#6366F1', true,  8),
+    (p_user_id, 'Conference & Events',    '📅',  '#EC4899', true,  9),
+    (p_user_id, 'Client Entertainment',   '⭐',  '#F97316', true, 10),
+    (p_user_id, 'Telecommunications',     '📱',  '#14B8A6', true, 11),
+    (p_user_id, 'Other',                  '📦',  '#94A3B8', true, 12)
   ON CONFLICT (user_id, name) DO NOTHING;
 
   -- Default payment methods
