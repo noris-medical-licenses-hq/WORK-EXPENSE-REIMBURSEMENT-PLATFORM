@@ -10,19 +10,20 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ExpenseCard } from "./ExpenseCard";
 import type { ReimbursementStatus } from "@/lib/types/expense.types";
 
-type Filter = "all" | "pending" | "submitted" | "approved" | "missing_receipts";
+type Filter = "all" | "pending" | "submitted" | "approved" | "missing_receipts" | "rejected";
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "pending", label: "Pending" },
   { id: "submitted", label: "Submitted" },
   { id: "approved", label: "Approved" },
+  { id: "rejected", label: "Rejected" },
   { id: "missing_receipts", label: "Missing" },
 ];
 
 const PENDING_STATUSES: ReimbursementStatus[] = ["draft", "ready"];
 
-const VALID_FILTERS: Filter[] = ["all", "pending", "submitted", "approved", "missing_receipts"];
+const VALID_FILTERS: Filter[] = ["all", "pending", "submitted", "approved", "missing_receipts", "rejected"];
 
 export function ExpenseListShell() {
   const { user } = useUser();
@@ -48,6 +49,8 @@ export function ExpenseListShell() {
         return expenses.filter((e) => e.reimbursement_status === "submitted");
       case "approved":
         return expenses.filter((e) => e.reimbursement_status === "approved" || e.reimbursement_status === "paid");
+      case "rejected":
+        return expenses.filter((e) => e.reimbursement_status === "rejected");
       case "missing_receipts":
         return expenses.filter((e) => e.receipt_status === "required_missing");
       default:
@@ -60,6 +63,7 @@ export function ExpenseListShell() {
     pending: expenses.filter((e) => PENDING_STATUSES.includes(e.reimbursement_status)).length,
     submitted: expenses.filter((e) => e.reimbursement_status === "submitted").length,
     approved: expenses.filter((e) => e.reimbursement_status === "approved" || e.reimbursement_status === "paid").length,
+    rejected: expenses.filter((e) => e.reimbursement_status === "rejected").length,
     missing_receipts: expenses.filter((e) => e.receipt_status === "required_missing").length,
   };
 

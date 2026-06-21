@@ -110,7 +110,8 @@ export function ReceiptSection({ expenseId, userId, onReceiptStatusChange }: Pro
         <input
           ref={inputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
+          capture="environment"
           onChange={handleFileChange}
           className="sr-only"
         />
