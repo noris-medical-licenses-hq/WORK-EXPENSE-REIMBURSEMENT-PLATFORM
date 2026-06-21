@@ -6,6 +6,19 @@ export class TripRepository {
     return createClient();
   }
 
+  static async findById(id: string, userId: string): Promise<Trip | null> {
+    const { data, error } = await this.db
+      .from("trips")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .maybeSingle();
+
+    if (error) throw new Error(error.message);
+    return data as unknown as Trip | null;
+  }
+
   static async findAll(userId: string): Promise<Trip[]> {
     const { data, error } = await this.db
       .from("trips")

@@ -6,6 +6,18 @@ export class BatchRepository {
     return createClient();
   }
 
+  static async findById(id: string, userId: string): Promise<ReimbursementBatch | null> {
+    const { data, error } = await this.db
+      .from("reimbursement_batches")
+      .select("*")
+      .eq("id", id)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) throw new Error(error.message);
+    return data as unknown as ReimbursementBatch | null;
+  }
+
   static async findAll(userId: string): Promise<ReimbursementBatch[]> {
     const { data, error } = await this.db
       .from("reimbursement_batches")

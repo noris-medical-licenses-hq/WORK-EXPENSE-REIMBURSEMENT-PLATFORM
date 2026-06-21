@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Package, Plus, Loader2 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -127,7 +128,11 @@ export function BatchListShell() {
       {!loading && batches.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-100 divide-y divide-slate-100">
           {batches.map((batch) => (
-            <div key={batch.id} className="flex items-center gap-3 px-4 py-3.5">
+            <Link
+              key={batch.id}
+              href={`/batches/${batch.id}`}
+              className="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors"
+            >
               <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
                 <Package className="w-4 h-4 text-slate-500" />
               </div>
@@ -141,7 +146,7 @@ export function BatchListShell() {
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${STATUS_COLORS[batch.status]}`}>
                 {batch.status}
               </span>
-            </div>
+            </Link>
           ))}
         </div>
       )}

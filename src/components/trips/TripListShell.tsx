@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Plane, Plus, MapPin, Loader2 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TripRepository } from "@/lib/repositories/trip.repository";
-import { useEffect } from "react";
 import type { Trip } from "@/lib/types/trip.types";
 import { formatDate } from "@/lib/utils/formatDate";
 
@@ -152,7 +152,11 @@ export function TripListShell() {
       {!loading && trips.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-100 divide-y divide-slate-100">
           {trips.map((trip) => (
-            <div key={trip.id} className="flex items-center gap-3 px-4 py-3.5">
+            <Link
+              key={trip.id}
+              href={`/trips/${trip.id}`}
+              className="flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors"
+            >
               <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                 <Plane className="w-4 h-4 text-blue-600" />
               </div>
@@ -174,7 +178,7 @@ export function TripListShell() {
               <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[trip.status]}`}>
                 {trip.status}
               </span>
-            </div>
+            </Link>
           ))}
         </div>
       )}
