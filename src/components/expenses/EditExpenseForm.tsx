@@ -7,6 +7,8 @@ import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 import { usePaymentMethods } from "@/hooks/usePaymentMethods";
+import { useTrips } from "@/hooks/useTrips";
+import { useBatches } from "@/hooks/useBatches";
 import { ExpenseService } from "@/lib/services/expense.service";
 import type { ExpenseWithRelations } from "@/lib/types/expense.types";
 
@@ -28,6 +30,8 @@ const schema = z.object({
   vendor_name: z.string().nullable(),
   category_id: z.string().nullable(),
   payment_method_id: z.string().nullable(),
+  trip_id: z.string().nullable(),
+  batch_id: z.string().nullable(),
   is_personal: z.boolean(),
   notes: z.string().nullable(),
 });
@@ -44,6 +48,8 @@ interface Props {
 export function EditExpenseForm({ expense, userId, onSaved, onCancel }: Props) {
   const { categories } = useCategories(userId);
   const { paymentMethods } = usePaymentMethods(userId);
+  const { trips } = useTrips(userId);
+  const { batches } = useBatches(userId);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
@@ -60,6 +66,8 @@ export function EditExpenseForm({ expense, userId, onSaved, onCancel }: Props) {
       vendor_name: expense.vendor_name ?? null,
       category_id: expense.category_id ?? null,
       payment_method_id: expense.payment_method_id ?? null,
+      trip_id: expense.trip_id ?? null,
+      batch_id: expense.batch_id ?? null,
       is_personal: expense.is_personal,
       notes: expense.notes ?? null,
     },
@@ -76,6 +84,8 @@ export function EditExpenseForm({ expense, userId, onSaved, onCancel }: Props) {
         vendor_name: values.vendor_name ?? null,
         category_id: values.category_id ?? null,
         payment_method_id: values.payment_method_id ?? null,
+        trip_id: values.trip_id ?? null,
+        batch_id: values.batch_id ?? null,
         is_personal: values.is_personal,
         notes: values.notes ?? null,
       });
@@ -177,6 +187,46 @@ export function EditExpenseForm({ expense, userId, onSaved, onCancel }: Props) {
                 {p.name}{p.last_four ? ` ···${p.last_four}` : ""}
               </option>
             ))}
+          </select>
+        </div>
+      )}
+
+      {/* Trip */}
+      {trips.filter((t) => t.status === "planning" || t.status === "active").length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Trip</label>
+          <select
+            {...register("trip_id")}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">No trip</option>
+            {trips
+              .filter((t) => t.status === "planning" || t.status === "active")
+              .map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}{t.destination ? ` — ${t.destination}` : ""}
+                </option>
+              ))}
+          </select>
+        </div>
+      )}
+
+      {/* Batch — only draft batches can receive expenses */}
+      {batches.filter((b) => b.status === "draft").length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            Submission Batch
+          </label>
+          <select
+            {...register("batch_id")}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">No batch</option>
+            {batches
+              .filter((b) => b.status === "draft")
+              .map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
           </select>
         </div>
       )}

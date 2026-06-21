@@ -30,6 +30,8 @@ export type ExpenseSummary =
 export type ExpenseWithRelations = Expense & {
   category?: ExpenseCategory | null;
   payment_method?: PaymentMethod | null;
+  trip?: { id: string; name: string } | null;
+  batch?: { id: string; name: string } | null;
 };
 
 // Form types (for React Hook Form)

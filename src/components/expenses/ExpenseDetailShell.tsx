@@ -208,6 +208,12 @@ export function ExpenseDetailShell({ id }: { id: string }) {
                 }
               />
             )}
+            {expense.trip && (
+              <LinkRow label="Trip" href={`/trips/${expense.trip.id}`} value={expense.trip.name} />
+            )}
+            {expense.batch && (
+              <LinkRow label="Batch" href={`/batches/${expense.batch.id}`} value={expense.batch.name} />
+            )}
             <Row label="Receipt" value={RECEIPT_STATUS_LABELS[expense.receipt_status]} />
             {expense.is_personal && (
               <Row label="Type" value="Personal (not for reimbursement)" />
@@ -269,6 +275,17 @@ function Row({ label, value }: { label: string; value: string }) {
     <div className="flex items-start justify-between px-4 py-3 gap-4">
       <span className="text-sm text-slate-400 flex-shrink-0">{label}</span>
       <span className="text-sm text-slate-900 text-right">{value}</span>
+    </div>
+  );
+}
+
+function LinkRow({ label, href, value }: { label: string; href: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between px-4 py-3 gap-4">
+      <span className="text-sm text-slate-400 flex-shrink-0">{label}</span>
+      <Link href={href} className="text-sm text-blue-600 hover:underline text-right">
+        {value}
+      </Link>
     </div>
   );
 }

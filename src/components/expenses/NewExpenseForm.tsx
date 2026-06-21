@@ -9,6 +9,8 @@ import { Loader2 } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 import { usePaymentMethods } from "@/hooks/usePaymentMethods";
 import { useProfile } from "@/hooks/useProfile";
+import { useTrips } from "@/hooks/useTrips";
+import { useBatches } from "@/hooks/useBatches";
 import { ExpenseService } from "@/lib/services/expense.service";
 import type { ReceiptStatus } from "@/lib/types/expense.types";
 
@@ -30,6 +32,8 @@ const schema = z.object({
   vendor_name: z.string().nullable(),
   category_id: z.string().nullable(),
   payment_method_id: z.string().nullable(),
+  trip_id: z.string().nullable(),
+  batch_id: z.string().nullable(),
   receipt_status: z.enum(["not_required", "required_missing", "uploaded"]),
   is_personal: z.boolean(),
   notes: z.string().nullable(),
@@ -46,6 +50,8 @@ export function NewExpenseForm({ userId }: Props) {
   const { categories } = useCategories(userId);
   const { paymentMethods } = usePaymentMethods(userId);
   const { profile } = useProfile(userId);
+  const { trips } = useTrips(userId);
+  const { batches } = useBatches(userId);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
@@ -62,6 +68,8 @@ export function NewExpenseForm({ userId }: Props) {
       is_personal: false,
       category_id: null,
       payment_method_id: null,
+      trip_id: null,
+      batch_id: null,
       vendor_name: null,
       notes: null,
     },
@@ -89,9 +97,9 @@ export function NewExpenseForm({ userId }: Props) {
         is_personal: values.is_personal,
         notes: values.notes ?? null,
         description: null,
-        trip_id: null,
+        trip_id: values.trip_id ?? null,
         project_id: null,
-        batch_id: null,
+        batch_id: values.batch_id ?? null,
         vendor_country: null,
       });
       router.push(`/expenses/${expense.id}`);
@@ -226,6 +234,46 @@ export function NewExpenseForm({ userId }: Props) {
                 {p.last_four ? ` ···${p.last_four}` : ""}
               </option>
             ))}
+          </select>
+        </div>
+      )}
+
+      {/* Trip */}
+      {trips.filter((t) => t.status === "planning" || t.status === "active").length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Trip</label>
+          <select
+            {...register("trip_id")}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">No trip</option>
+            {trips
+              .filter((t) => t.status === "planning" || t.status === "active")
+              .map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}{t.destination ? ` — ${t.destination}` : ""}
+                </option>
+              ))}
+          </select>
+        </div>
+      )}
+
+      {/* Batch */}
+      {batches.filter((b) => b.status === "draft").length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">
+            Submission Batch
+          </label>
+          <select
+            {...register("batch_id")}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">No batch</option>
+            {batches
+              .filter((b) => b.status === "draft")
+              .map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
           </select>
         </div>
       )}

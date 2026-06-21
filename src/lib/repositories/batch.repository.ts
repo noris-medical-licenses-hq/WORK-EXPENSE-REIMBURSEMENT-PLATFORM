@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import type { ReimbursementBatch, ReimbursementBatchInsert } from "@/lib/types/batch.types";
+import type { ReimbursementBatch, ReimbursementBatchInsert, BatchStatus } from "@/lib/types/batch.types";
 
 export class BatchRepository {
   private static get db() {
@@ -33,6 +33,23 @@ export class BatchRepository {
     const { data, error } = await this.db
       .from("reimbursement_batches")
       .insert(insert as Record<string, unknown>)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as unknown as ReimbursementBatch;
+  }
+
+  static async updateStatus(
+    id: string,
+    userId: string,
+    status: BatchStatus
+  ): Promise<ReimbursementBatch> {
+    const { data, error } = await this.db
+      .from("reimbursement_batches")
+      .update({ status, updated_at: new Date().toISOString() } as Record<string, unknown>)
+      .eq("id", id)
+      .eq("user_id", userId)
       .select()
       .single();
 
